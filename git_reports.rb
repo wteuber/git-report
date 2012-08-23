@@ -12,18 +12,18 @@ logs = log.split(/(^commit [0-9a-f]{40})\n/)[1..-1]
 t = true; logs.select!{t=!t}
 
 # parse
-stat = logs.map do |commit|
-  commit = commit.split(/\n/).map do |l|
+allstat = logs.map do |cmt|
+  commit = cmt.split(/\n/).map do |l|
     l.scan(/\AAuthor: ([^\n]*)/)[0] ||
       l.scan(/\A([\d]+|-)\t([\d]+|-)\t/)[0]
   end.flatten(1).compact
-  t = false; commit[1] = commit[1..-1].select!{t=!t}.map(&:to_i).reduce(&:+)
-  t = true; commit[2] = commit[1..-1].select!{t=!t}.map(&:to_i).reduce(&:+)
+  t = false; commit[1] = (commit[1..-1].select!{t=!t}.map(&:to_i).reduce(&:+).to_i rescue 0)
+  t = true; commit[2] = (commit[1..-1].select!{t=!t}.map(&:to_i).reduce(&:+).to_i rescue 0)
   commit
 end.group_by{|e| e[0]}
 
 # convert, sort
-stats = stat.map{ |name, st|
+stats = allstat.map{ |name, st|
   [name.to_s,
     st.length.to_s,
     '+' + st.map{|d|d[1]}.reduce(&:+).to_s,
