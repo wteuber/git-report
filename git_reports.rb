@@ -34,7 +34,10 @@ stats = stat.map{ |name, st|
 files = (%x"git ls-files").split
 loc_blame = files.map{|f| %x(git blame --line-porcelain #{f})}
 
-loc_names = loc_blame.map{|rep| rep.force_encoding('ASCII-8BIT').scan(/\nauthor ([^\n]*)\nauthor-mail( [^\n]*)/).map(&:join)}.flatten(1)
+loc_names = loc_blame.map{|rep|
+  rep = rep.unpack('C*').pack('C*')
+  rep.scan(/\nauthor ([^\n]*)\nauthor-mail( [^\n]*)/).map(&:join)
+}.flatten(1)
 names = loc_names.uniq
 loc_stat = Hash[names.map{|name| [name, loc_names.count(name)]}]
 
@@ -67,13 +70,12 @@ tbl_head = ([head]).map{ |e|
     e[4].rjust(own_width, ' ')] * ' | '
 }*"\n"
 
-
 tbl_cont = (stats).map{ |e|
   [e[0].ljust(nam_width, ' '),
     e[1].rjust(com_width, ' '),
     e[2].rjust(add_width, ' '),
     e[3].rjust(del_width, ' '),
-    (loc_stat[e[0]].to_s).rjust(own_width, ' ')] * ' | '
+    (loc_stat[e[0].unpack('C*').pack('C*')].to_i.to_s).rjust(own_width, ' ')] * ' | '
 }*"\n"
 
 #tbl_head = tbl_hc[0..(tot_width-1)]
