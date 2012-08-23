@@ -31,37 +31,58 @@ stats = stat.map{ |name, st|
   ]
 }.sort{|l, m| m[1].to_i <=> l[1].to_i}
 
+files = (%x"git ls-files").split
+loc_blame = files.map{|f| %x(git blame --line-porcelain #{f})}
+
+loc_names = loc_blame.map{|rep| rep.force_encoding('ASCII-8BIT').scan(/\nauthor ([^\n]*)\nauthor-mail( [^\n]*)/).map(&:join)}.flatten(1)
+names = loc_names.uniq
+loc_stat = Hash[names.map{|name| [name, loc_names.count(name)]}]
 
 # format:
-head = ['Name', 'Commits', '+LOC', '-LOC']
+head = ['Name', 'Commits', '+LOC', '-LOC', 'OWN']
 
 col_widths = stats.map{|l| l.map(&:length)}.transpose.map(&:max)
 nam_width, com_width, add_width, del_width = col_widths
 nam_width = [nam_width, head[0].length].max
-com_width = [com_width, head[1].length].max+1
-add_width = [add_width, head[2].length].max+1
-del_width = [del_width, head[3].length].max+1
+com_width = [com_width, head[1].length].max + 1
+add_width = [add_width, head[2].length].max + 1
+del_width = [del_width, head[3].length].max + 1
+
+own_width = loc_stat.map{|k,l| l.to_s.length}.max
+own_width = [own_width, head[4].length].max + 1
 
 sum_commits = stats.map{|e| e[1].to_i}.reduce(&:+)
 sum_loc_add = stats.map{|e| e[2].to_i}.reduce(&:+)
 sum_loc_del = stats.map{|e| e[3].to_i}.reduce(&:+)
+sum_loc_own = loc_stat.map{|k,e| e.to_i}.reduce(&:+)
 
-tot_width = (nam_width+com_width+add_width+del_width+(head.length-1)*3)
+tot_width = (nam_width+com_width+add_width+del_width+own_width+(head.length-1)*3)
 tbl_hor_lin = '-' * tot_width
 tbl_hor_eql = '=' * tot_width
-tbl_hc = ([head]+stats).map{ |e|
-  [e[0].to_s.ljust(nam_width, ' '),
-    e[1].to_s.rjust(com_width, ' '),
+tbl_head = ([head]).map{ |e|
+  [e[0].ljust(nam_width, ' '),
+    e[1].rjust(com_width, ' '),
     e[2].rjust(add_width, ' '),
-    e[3].rjust(del_width, ' ')] * ' | '
+    e[3].rjust(del_width, ' '),
+    e[4].rjust(own_width, ' ')] * ' | '
 }*"\n"
 
-tbl_head = tbl_hc[0..(tot_width-1)]
-tbl_cont = tbl_hc[(tot_width+1)..-1]
+
+tbl_cont = (stats).map{ |e|
+  [e[0].ljust(nam_width, ' '),
+    e[1].rjust(com_width, ' '),
+    e[2].rjust(add_width, ' '),
+    e[3].rjust(del_width, ' '),
+    (loc_stat[e[0]].to_s).rjust(own_width, ' ')] * ' | '
+}*"\n"
+
+#tbl_head = tbl_hc[0..(tot_width-1)]
+#tbl_cont = tbl_hc[(tot_width+1)..-1]
 tbl_foot = [''.ljust(nam_width, ' '),
   sum_commits.to_s.rjust(com_width, ' '),
   sum_loc_add.to_s.rjust(add_width, ' '),
-  sum_loc_del.to_s.rjust(del_width, ' ')] * ' | '
+  sum_loc_del.to_s.rjust(del_width, ' '),
+  sum_loc_own.to_s.rjust(own_width, ' ')] * ' | '
 
 table = [tbl_head, tbl_hor_lin, tbl_cont, tbl_hor_eql, tbl_foot] * "\n"
 
