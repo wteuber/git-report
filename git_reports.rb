@@ -15,7 +15,7 @@ t = true; logs.select!{t=!t}
 stat = logs.map do |commit|
   commit = commit.split(/\n/).map do |l|
     l.scan(/\AAuthor: ([^\n]*)/)[0] ||
-      l.scan(/\A([\d]+)\t([\d]+)\t/)[0]
+      l.scan(/\A([\d]+|-)\t([\d]+|-)\t/)[0]
   end.flatten(1).compact
   t = false; commit[1] = commit[1..-1].select!{t=!t}.map(&:to_i).reduce(&:+)
   t = true; commit[2] = commit[1..-1].select!{t=!t}.map(&:to_i).reduce(&:+)
