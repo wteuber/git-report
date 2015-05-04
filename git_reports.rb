@@ -7,7 +7,7 @@
 puts "git log --numstat --no-merges"
 
 # retrieve data
-log = %x"git log --numstat --no-merges"
+log = (%x"git log --numstat --no-merges").force_encoding('UTF-8')
 logs = log.split(/(^commit [0-9a-f]{40})\n/)[1..-1]
 t = true; logs.select!{t=!t}
 
