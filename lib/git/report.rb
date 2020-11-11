@@ -131,7 +131,7 @@ module Git
       lines << head
       lines << hr
       authors.map do |author|
-        line =  "| #{author.name.mb_chars.normalize.ljust(name_length)} "
+        line =  "| #{author.name.mb_chars.unicode_normalize.ljust(name_length)} "
         line += "| #{author.loc.to_s.rjust(loc_length)} "
         line += "| #{author.commits.to_s.rjust(commits_length)} "
         line += "| #{author.files.to_s.rjust(files_length)} "
