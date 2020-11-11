@@ -68,7 +68,7 @@ module Git
     def add(line, opts = {})
       shortlog_line = format_shortlog_line(*line.scan(COMMITS_NAME_EMAIL)[0])
       shortlog_line[:commits] = opts[:commits] if opts[:commits]
-      candidate = Author.new shortlog_line
+      candidate = Author.new **shortlog_line
       @authors << candidate unless add_author candidate
     end
 
