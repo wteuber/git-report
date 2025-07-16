@@ -1,7 +1,115 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-require File.join File.dirname(__FILE__), '../lib/git_report.rb'
+# Get the directory where this script is located
+script_dir = File.expand_path(File.dirname(__FILE__))
+project_dir = File.expand_path('..', script_dir)
+
+# Set up the proper environment for loading gems
+ENV['BUNDLE_GEMFILE'] = File.join(project_dir, 'Gemfile')
+
+# Helper method to install gems using gem command directly
+def install_gems_without_bundler(project_dir)
+  vendor_dir = File.join(project_dir, 'vendor', 'gems')
+  gem_home = File.join(vendor_dir, "ruby-#{RUBY_VERSION}")
+  
+  # Create vendor directory
+  require 'fileutils'
+  FileUtils.mkdir_p(gem_home)
+  
+  # Required gems
+  gems = ['pmap', 'activesupport', 'bigdecimal']
+  
+  # Check if gems are already installed
+  gems_installed = gems.all? do |gem_name|
+    Dir.exist?(File.join(gem_home, 'gems')) && 
+    !Dir.glob(File.join(gem_home, 'gems', "#{gem_name}-*")).empty?
+  end
+  
+  unless gems_installed
+    puts "Installing required gems locally (Ruby #{RUBY_VERSION})..."
+    
+    # Install each gem to vendor directory
+    gems.each do |gem_name|
+      puts "  Installing #{gem_name}..."
+      install_cmd = "GEM_HOME=#{gem_home} GEM_PATH=#{gem_home} gem install #{gem_name} --no-document"
+      
+      unless system(install_cmd)
+        puts "Failed to install #{gem_name}. Please install manually:"
+        puts "  gem install #{gem_name}"
+        exit 1
+      end
+    end
+  end
+  
+  # Add vendor gems to load path
+  ENV['GEM_HOME'] = gem_home
+  ENV['GEM_PATH'] = gem_home
+  
+  # Add all gem lib directories to load path
+  Dir[File.join(gem_home, 'gems', '*', 'lib')].each do |path|
+    $LOAD_PATH.unshift(path)
+  end
+  
+  # Also add specifications for gem loading
+  Gem.paths = {'GEM_HOME' => gem_home, 'GEM_PATH' => gem_home}
+end
+
+# Try to use bundler if available and compatible
+bundler_works = false
+
+begin
+  require 'bundler'
+  
+  # Test if bundler actually works with current Ruby version
+  begin
+    # Simple test - try to read the Gemfile which will trigger untaint error if incompatible
+    test_gemfile = ENV['BUNDLE_GEMFILE'] || File.join(project_dir, 'Gemfile')
+    if File.exist?(test_gemfile)
+      # This will fail on Ruby 3.4 with bundler < 2.5
+      Bundler.read_file(test_gemfile) rescue nil
+    end
+    
+    Bundler.setup
+    bundler_works = true
+  rescue NoMethodError => e
+    if e.message.include?('untaint')
+      # Ruby 3.4+ with old bundler
+      bundler_works = false
+    else
+      raise e
+    end
+  rescue Bundler::GemNotFound
+    # Gems not found, but bundler works
+    puts "Installing required gems..."
+    system("cd #{project_dir} && bundle install")
+    Bundler.setup
+    bundler_works = true
+  rescue StandardError => e
+    # Any other bundler error
+    bundler_works = false
+  end
+rescue LoadError
+  # Bundler not available
+  bundler_works = false
+end
+
+# If bundler isn't working, install gems without it
+unless bundler_works
+  install_gems_without_bundler(project_dir)
+  
+  # Try to require gems directly
+  begin
+    require 'pmap'
+    require 'active_support/core_ext/string/multibyte'
+  rescue LoadError => e
+    puts "Error loading required gems: #{e.message}"
+    puts "This may be due to dependency issues."
+    exit 1
+  end
+end
+
+require File.join(script_dir, '../lib/git_report.rb')
 
 git_report = Git::Report.instance.retrieve_stats
 puts git_report.stats
