@@ -1,9 +1,11 @@
-# LOL
+# Git report module for analyzing repository statistics
+require 'shellwords'
+
 module Git
-  # LOL
+  # Report class - generates statistics about git repository contributors
+  # Analyzes commits, lines of code, and file changes per author
   class Report
     attr_reader :authors
-    include Singleton
 
     NAME = /\A[^(]*\((.*)\s*\d{4}-\d\d-\d\d \d\d:\d\d:\d\d [+-]\d{4}\s+\d+\)/
     COMMITS_NAME_EMAIL = /\A\s*(\d*)\t(.*) <(.*)>/
@@ -21,22 +23,26 @@ module Git
     end
 
     def retrieve_stats
+      verify_git_repository
       parse_shortlog
       parse_blame
       self
     end
+    
+
 
     def parse_shortlog
-      # TODO: git shortlog -sne --no-merges does not list all names!!
+      # First pass: get all authors (including those with only merges)
       `git shortlog -se`.split(/\n/).map do |shortlog_line|
         add shortlog_line, commits: 0
       end
 
+      # Second pass: get actual commit counts (excluding merges)
       `git shortlog -se --no-merges`.split(/\n/).map do |shortlog_line|
         add shortlog_line
       end
 
-      authors.peach(&:retreive_loc_stats)
+      authors.peach(&:retrieve_loc_stats)
     end
 
     def parse_blame
@@ -51,7 +57,8 @@ module Git
 
       file_lists.peach do |files|
         files.each do |file|
-          blame = `git blame -w #{file} 2> /dev/null`
+          escaped_file = Shellwords.escape(file)
+          blame = `git blame -w #{escaped_file} 2> /dev/null`
           next if blame.empty?
           blame.unpack('C*').pack('C*').split(/\n/).map do |line|
             name = line.match(NAME)[1].strip.force_encoding('UTF-8')
@@ -86,12 +93,6 @@ module Git
     def find_author(name)
       @authors.find { |author| author.name == name }
     end
-
-    # def to_h
-    #   authors.map(&:to_s) * "\n"
-    # end
-
-    # TODO: refactor to a formatter
 
     def stats
       authors.sort! { |this, other| other.name  <=> this.name }
@@ -130,16 +131,17 @@ module Git
       lines << hr
       lines << head
       lines << hr
-      authors.map do |author|
+      authors.each do |author|
+        # Skip authors with no contributions
+        next if [author.loc, author.commits, author.files, author.loc_added,
+                 author.loc_deleted].all?(&:zero?)
+                 
         line =  "| #{author.name.mb_chars.unicode_normalize.ljust(name_length)} "
         line += "| #{author.loc.to_s.rjust(loc_length)} "
         line += "| #{author.commits.to_s.rjust(commits_length)} "
         line += "| #{author.files.to_s.rjust(files_length)} "
         line += "| #{author.loc_added.to_s.rjust(loc_add_length)} "
         line += "| #{author.loc_deleted.to_s.rjust(loc_del_length)} |"
-        unless [author.loc, author.commits, author.files, author.loc_added,
-                author.loc_deleted].all?(&:zero?)
-        end
         lines << line
       end
       lines << hr
@@ -147,6 +149,12 @@ module Git
     end
 
     private
+
+    def verify_git_repository
+      unless system('git rev-parse --git-dir > /dev/null 2>&1')
+        raise "Not a git repository (or any of the parent directories)"
+      end
+    end
 
     def format_shortlog_line(commits, name, email)
       { name: name, emails: email, commits: commits.to_i }

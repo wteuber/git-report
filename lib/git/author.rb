@@ -1,7 +1,9 @@
 # keys of report are the authors, the values contains the report data:
 #  * commits, +LOC, -LOC, LOC,
+require 'shellwords'
+
 module Git
-  #
+  # Author class - represents a git contributor with their statistics
   class Author
     # name: String - the name of the author
     # emails: Set<String> - a list of email addresses
@@ -34,18 +36,27 @@ module Git
       name == other.name
     end
 
-    def retreive_loc_stats
+    def retrieve_loc_stats
       emails.pmap do |email|
-        numstat = `git log --author="#{email}" \
+        # Escape email to prevent command injection
+        escaped_email = Shellwords.escape(email)
+        numstat = `git log --author=#{escaped_email} \
           --pretty=tformat: --numstat --no-merges`
+        
+        # Skip if no commits found for this email
+        next if numstat.empty?
+        
         loc = numstat.split(/\n/).map do |numstat_line|
-          numstat_line.scan(/\A(.*)\t(.*)\t/)[0].map(&:to_i)
-        end
+          parts = numstat_line.scan(/\A(.*)\t(.*)\t/)[0]
+          parts ? parts.map(&:to_i) : nil
+        end.compact
 
+        # Skip if no valid data
+        next if loc.empty?
+        
         added, deleted = loc.transpose.map do |add_del_loc|
           add_del_loc.inject(&:+)
         end
-        puts email if $OUT
         @loc_added += added if added
         @loc_deleted += deleted if deleted
       end

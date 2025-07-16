@@ -111,5 +111,5 @@ end
 
 require File.join(script_dir, '../lib/git_report.rb')
 
-git_report = Git::Report.instance.retrieve_stats
+git_report = Git::Report.new.retrieve_stats
 puts git_report.stats
