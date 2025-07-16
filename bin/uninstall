@@ -2,4 +2,4 @@
 
 git config --global --unset alias.report
 echo 'git_report successfully uninstalled.'
-echo 'You can not use "git report" anymore.'
+echo 'You can no longer use "git report".'
