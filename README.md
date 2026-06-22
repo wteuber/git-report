@@ -11,29 +11,18 @@
      \___/'                       (_)
 ```
 
-A Ruby-based Git statistics tool that analyzes and displays commit statistics for all contributors in a repository, including lines of code, commit counts, and file changes.
+> A single command — `git report` — that tells you who wrote the code in any Git repository.
 
-## Features
+[![CI](https://github.com/wteuber/git_report/actions/workflows/ci.yml/badge.svg)](https://github.com/wteuber/git_report/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Ruby](https://img.shields.io/badge/Ruby-2.6%20–%203.4%2B-CC342D.svg)](.ruby-version)
 
-- 📊 Display commit statistics per author
-- 📈 Show added/deleted lines of code
-- 🚀 Parallel processing for faster analysis
-- 🔧 Works with any Git repository
-- 🌐 Global `git report` command
-- 🔄 Automatic dependency management
-- 💎 Compatible with Ruby 2.6 through 3.4+
-
-## Usage
-
-Simply navigate to any Git repository and run:
-
-```bash
-git report
-```
-
-The tool will analyze the repository and display statistics for all contributors.
-
-## Example Output
+`git_report` analyzes a repository and prints a per-author breakdown of how much
+code each contributor wrote — surviving lines, lifetime additions and deletions,
+commit counts, and files touched — as a clean ASCII table. It runs on whatever
+Ruby is already on your machine (including the stock macOS system Ruby), needs no
+Bundler, and installs its one dependency into an isolated local directory so it
+never touches your global gems.
 
 ```
 +-----------------+-----+---------+-------+------+------+
@@ -44,45 +33,115 @@ The tool will analyze the repository and display statistics for all contributors
 +-----------------+-----+---------+-------+------+------+
 ```
 
+## Table of Contents
+
+- [Why git_report?](#why-git_report)
+- [Quick Start](#quick-start)
+- [Understanding the Output](#understanding-the-output)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [How It Works](#how-it-works)
+- [Compatibility](#compatibility)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+- [Uninstallation](#uninstallation)
+- [License](#license)
+
+## Why git_report?
+
+`git shortlog` tells you who committed and how often, but commit counts are a
+poor proxy for contribution. `git_report` answers the questions that actually
+matter:
+
+- **Who owns the code that exists today?** The `LOC` column counts the lines each
+  author wrote that still survive in the current tree (via `git blame`), not just
+  what they once added.
+- **Who has done the most work over time?** The `+LOC` / `-LOC` columns sum every
+  line added and removed across the project's history.
+- **How is effort spread across the team?** Commits and files-touched round out
+  the picture — in one table, with zero configuration.
+
+## Quick Start
+
+```bash
+git clone https://github.com/wteuber/git_report.git
+cd git_report
+./bin/install          # registers a global `git report` alias
+
+cd /path/to/any/repo
+git report             # print the contributor table
+```
+
+The first run installs the one dependency (`pmap`) into a project-local
+`vendor/` directory; every run after that is instant.
+
+## Understanding the Output
+
+Each row is one contributor (authors with multiple email addresses but the same
+name are merged into a single row). The columns:
+
+| Column      | Meaning                                                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| **Name**    | Author name, deduplicated across email addresses.                                                |
+| **LOC**     | Lines **currently in the codebase** attributed to this author by `git blame -w` (surviving work).|
+| **Commits** | Number of non-merge commits authored.                                                            |
+| **files**   | Distinct files in the current tree that contain at least one line by this author.                |
+| **+LOC**    | Total lines this author **added** over the entire history (`git log --numstat`, merges excluded).|
+| **-LOC**    | Total lines this author **deleted** over the entire history.                                     |
+
+> 💡 **LOC vs. +LOC:** `LOC` measures what *remains* today; `+LOC` measures
+> everything ever *written*. A contributor whose code was later refactored away
+> can have a high `+LOC` but a low `LOC`.
+
+Rows are sorted by surviving `LOC` (descending), and contributors with no
+measurable contribution are omitted. Untracked and uncommitted files are
+ignored, so the report reflects committed history only.
+
+## Features
+
+- 📊 Per-author commit, line, and file statistics in one table
+- 🧬 Distinguishes surviving code (`LOC`) from lifetime additions/deletions (`+LOC`/`-LOC`)
+- 🔀 Merges contributors who used multiple email addresses
+- 🚀 Parallel processing (via `pmap`) for fast analysis of large repositories
+- 🌐 Global `git report` command that works in any repository
+- 🧰 Zero global footprint — installs its one gem into an isolated local `vendor/`
+- 💎 Runs on Ruby 2.6 through 3.4+, including the stock macOS system Ruby
+
 ## Requirements
 
 - Git (any recent version)
-- Ruby 2.6 or higher
-- RubyGems (included with Ruby)
+- Ruby 2.6 or higher (the macOS system Ruby is fine)
+- RubyGems (bundled with Ruby)
 
 ## Installation
 
-### Quick Install
+### Quick Install (recommended)
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/wteuber/git_report.git
-   cd git_report
-   ```
+```bash
+git clone https://github.com/wteuber/git_report.git
+cd git_report
+./bin/install
+```
 
-2. Run the install script:
-   ```bash
-   ./bin/install
-   ```
-
-This will set up a global Git alias, allowing you to use `git report` in any repository.
+This registers a global Git alias so you can run `git report` from any
+repository on your machine.
 
 ### Manual Installation
 
-If you prefer manual installation:
+If you'd rather wire up the alias yourself:
 
-1. Clone the repository to your preferred location
-2. Add the git alias manually:
-   ```bash
-   git config --global alias.report "!sh -c \"/path/to/git_report/bin/git_report\""
-   ```
+```bash
+git config --global alias.report "!sh -c \"/path/to/git_report/bin/git_report\""
+```
 
 ### Dependencies
 
-The tool's only runtime dependency is the `pmap` gem; everything else it needs
-is in the Ruby standard library. It installs `pmap` automatically into a
-project-local `vendor/` directory on first run (no Bundler, no global install).
-If you prefer to install it manually:
+The only runtime dependency is the [`pmap`](https://rubygems.org/gems/pmap) gem;
+everything else comes from the Ruby standard library. On first run `git_report`
+installs `pmap` into a project-local `vendor/` directory with an isolated
+`GEM_HOME`/`GEM_PATH` — no Bundler, no global install, no version conflicts. To
+install it manually instead:
 
 ```bash
 gem install pmap
@@ -90,45 +149,51 @@ gem install pmap
 
 ## How It Works
 
-1. **Git Analysis**: Uses `git log` and `git shortlog` to gather commit data
-2. **Parallel Processing**: Utilizes the `pmap` gem for efficient processing of large repositories
-3. **Isolated Dependency Management**: Installs its single gem into a project-local `vendor/` directory with an isolated `GEM_HOME`/`GEM_PATH`, so it never clashes with the gems of whatever Ruby is on your `PATH`
-4. **Author Deduplication**: Intelligently merges statistics for authors with multiple email addresses
+1. **Git analysis** — gathers contributor data with `git shortlog` (commits),
+   `git blame -w` (surviving lines and files), and `git log --numstat` (lifetime
+   additions/deletions).
+2. **Parallel processing** — uses `pmap` to fan blame and log work out across
+   files and authors, keeping large repositories fast.
+3. **Author deduplication** — merges authors who committed under the same name
+   with different email addresses into a single row.
+4. **Isolated dependencies** — installs its one gem into a project-local
+   `vendor/` directory under an isolated `GEM_HOME`/`GEM_PATH`, so it never
+   clashes with the gems of whatever Ruby is on your `PATH`.
 
 ## Compatibility
 
-git_report is designed to work across different Ruby versions and environments:
+`git_report` is designed to run anywhere Git and Ruby already exist:
 
-- ✅ Ruby 2.6 (the support floor) through 3.4+, verified in CI on both
-- ✅ Runs on the stock macOS system Ruby — no Ruby install required for end users
+- ✅ Ruby **2.6 (support floor) through 3.4+**, both verified in CI
+- ✅ Runs on the stock macOS system Ruby — end users need no Ruby install
 - ✅ Works with system Ruby or version managers (rbenv, rvm, chruby)
-- ✅ Installs its gem locally in an isolated `vendor/` dir to avoid permission and version conflicts
+- ✅ Installs its gem locally to avoid permission and version conflicts
 
 The Ruby version floor is enforced by RuboCop (`TargetRubyVersion: 2.6`) and a CI
 matrix that runs against both 2.6 and a recent Ruby. The `.ruby-version` file
-(`3.4.9`) only selects a comfortable Ruby for local development — it does not
+(`3.4.9`) only selects a comfortable Ruby for local development — it does **not**
 narrow the supported range.
 
 ## Troubleshooting
 
-### Permission Errors
+**Permission errors installing gems** — none expected: `git_report` installs into
+a local `vendor/` directory rather than a system location. If you still hit
+trouble, ensure the project directory is writable.
 
-If you encounter permission errors when installing gems, the tool will automatically install them to a local vendor directory.
+**Ruby version issues** — the `.ruby-version` file selects Ruby 3.4.9 for local
+development, but the tool supports any Ruby from 2.6 up and does not use Bundler
+at runtime, so Bundler version conflicts cannot affect it.
 
-### Ruby Version Issues
-
-The `.ruby-version` file selects Ruby 3.4.9 for local development, but the tool
-supports any Ruby from 2.6 up. It does not use Bundler at runtime, so Bundler
-version conflicts cannot affect it.
-
-### Missing Dependencies
-
-If you see errors about missing gems, remove the local gem cache and let the tool
+**Missing or broken dependencies** — clear the local gem cache and let the tool
 reinstall on the next run:
+
 ```bash
 cd /path/to/git_report
 rm -rf vendor
 ```
+
+**"Not a git repository"** — run `git report` from inside a Git working tree;
+the tool reports on the repository in the current directory.
 
 ## Development
 
@@ -141,7 +206,7 @@ git_report/
 │   ├── install       # Installation script
 │   └── uninstall     # Uninstallation script
 ├── lib/
-│   ├── git_report.rb # Main library file
+│   ├── git_report.rb # Entry point (loads the Git:: classes)
 │   └── git/
 │       ├── author.rb # Author statistics class
 │       └── report.rb # Report generation class
@@ -149,15 +214,15 @@ git_report/
 │   └── smoke_test.rb # End-to-end smoke test
 ├── .github/workflows/
 │   └── ci.yml        # CI: smoke test (Ruby 2.6 + 3.4) and RuboCop
-├── .rubocop.yml     # Lint config; enforces the Ruby 2.6 syntax floor
-├── Gemfile          # Ruby dependencies (just pmap)
-├── .ruby-version    # Ruby for local development (does not narrow support)
-└── README.md        # This file
+├── .rubocop.yml      # Lint config; enforces the Ruby 2.6 syntax floor
+├── Gemfile           # Ruby dependencies (just pmap)
+├── .ruby-version     # Ruby for local development (does not narrow support)
+└── README.md         # This file
 ```
 
 ### Running Tests
 
-An end-to-end smoke test drives the real executable against a throwaway git
+An end-to-end smoke test drives the real executable against a throwaway Git
 repository. It uses only minitest (a Ruby default gem), so it needs no setup:
 
 ```bash
@@ -168,35 +233,39 @@ CI runs this on both Ruby 2.6 and 3.4, plus RuboCop for 2.6 compatibility.
 
 ### Contributing
 
+Contributions are welcome!
+
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Make your change and keep the smoke test green (`ruby test/smoke_test.rb`)
+4. Commit your changes (`git commit -m 'Add some amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
 
 ## Uninstallation
-
-To remove git_report:
 
 ```bash
 cd /path/to/git_report
 ./bin/uninstall
 ```
 
-This will remove the global Git alias. You can then delete the git_report directory.
+This removes the global Git alias; you can then delete the `git_report`
+directory.
 
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
+Released under the [MIT License](LICENSE).
 
 ## Acknowledgments
 
 - Original ASCII art logo design
 - Built with Ruby and the power of Git
-- Special thanks to all contributors
+- Thanks to all contributors
 
 ## Links
 
 - **Repository**: https://github.com/wteuber/git_report
 - **Issues**: https://github.com/wteuber/git_report/issues
 - **Pull Requests**: https://github.com/wteuber/git_report/pulls
+</content>
+</invoke>
