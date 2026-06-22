@@ -45,7 +45,7 @@ module Git
         add shortlog_line
       end
 
-      authors.peach(&:retrieve_loc_stats)
+      Git::Parallel.peach(authors, &:retrieve_loc_stats)
     end
 
     def parse_blame
@@ -58,7 +58,7 @@ module Git
       names_loc_count = Hash.new(0)
       names_files     = {}
 
-      file_lists.peach do |files|
+      Git::Parallel.peach(file_lists) do |files|
         files.each do |file|
           escaped_file = Shellwords.escape(file)
           blame = `git blame -w #{escaped_file} 2> /dev/null`
