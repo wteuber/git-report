@@ -15,7 +15,7 @@ R> A single command — `git report` — that tells you who wrote the code in an
 
 [![CI](https://github.com/wteuber/git_report/actions/workflows/ci.yml/badge.svg)](https://github.com/wteuber/git_report/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Ruby](https://img.shields.io/badge/Ruby-2.6%20–%203.4%2B-CC342D.svg)](.ruby-version)
+[![Ruby](https://img.shields.io/badge/Ruby-2.6%20–%204.0%2B-CC342D.svg)](.ruby-version)
 
 `git_report` analyzes a repository and prints a per-author breakdown of how much
 code each contributor wrote — surviving lines, lifetime additions and deletions,
@@ -106,7 +106,7 @@ ignored, so the report reflects committed history only.
 - 🚀 Parallel processing (plain Ruby threads) for fast analysis of large repositories
 - 🌐 Global `git report` command that works in any repository
 - 🧰 Zero dependencies — pure Ruby standard library, nothing to install
-- 💎 Runs on Ruby 2.6 through 3.4+, including the stock macOS system Ruby
+- 💎 Runs on Ruby 2.6 through 4.0+, including the stock macOS system Ruby
 
 ## Requirements
 
@@ -160,22 +160,22 @@ whatever Ruby is on your `PATH`, including the stock macOS system Ruby.
 
 `git_report` is designed to run anywhere Git and Ruby already exist:
 
-- ✅ Ruby **2.6 (support floor) through 3.4+**, both verified in CI
+- ✅ Ruby **2.6 (support floor) through 4.0+**, all verified in CI
 - ✅ Runs on the stock macOS system Ruby — end users need no Ruby install
 - ✅ Works with system Ruby or version managers (rbenv, rvm, chruby)
 - ✅ No gems to install, so no permission or version conflicts
 
 The Ruby version floor is enforced by RuboCop (`TargetRubyVersion: 2.6`) and a CI
-matrix that runs against both 2.6 and a recent Ruby. The `.ruby-version` file
-(`3.4.9`) only selects a comfortable Ruby for local development — it does **not**
-narrow the supported range.
+matrix that runs against 2.6, a recent 3.x, and the latest Ruby (4.0). The
+`.ruby-version` file (`4.0.4`) only selects a comfortable Ruby for local
+development — it does **not** narrow the supported range.
 
 ## Troubleshooting
 
 **Permission errors installing gems** — not applicable: `git_report` installs no
 gems. It runs entirely on the Ruby standard library.
 
-**Ruby version issues** — the `.ruby-version` file selects Ruby 3.4.9 for local
+**Ruby version issues** — the `.ruby-version` file selects Ruby 4.0.4 for local
 development, but the tool supports any Ruby from 2.6 up and does not use Bundler
 at runtime, so Bundler version conflicts cannot affect it.
 
@@ -201,7 +201,7 @@ git_report/
 ├── test/
 │   └── smoke_test.rb # End-to-end smoke test
 ├── .github/workflows/
-│   └── ci.yml        # CI: smoke test (Ruby 2.6 + 3.4) and RuboCop
+│   └── ci.yml        # CI: smoke test (Ruby 2.6 + 3.4 + 4.0) and RuboCop
 ├── .rubocop.yml      # Lint config; enforces the Ruby 2.6 syntax floor
 ├── Gemfile           # Declares the Ruby floor (no gem dependencies)
 ├── .ruby-version     # Ruby for local development (does not narrow support)
@@ -217,7 +217,7 @@ repository. It uses only minitest (a Ruby default gem), so it needs no setup:
 ruby test/smoke_test.rb
 ```
 
-CI runs this on both Ruby 2.6 and 3.4, plus RuboCop for 2.6 compatibility.
+CI runs this on Ruby 2.6, 3.4, and 4.0, plus RuboCop for 2.6 compatibility.
 
 ### Contributing
 
