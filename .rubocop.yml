@@ -1,0 +1,20 @@
+# RuboCop here exists primarily to guard the Ruby 2.6 support floor: setting
+# TargetRubyVersion makes it flag any syntax or APIs newer than what the stock
+# macOS system Ruby (2.6) understands, before an end user ever hits them.
+#
+# Style/layout/metrics cops are intentionally off so the check stays focused on
+# correctness and compatibility rather than churning the existing code's style.
+AllCops:
+  TargetRubyVersion: 2.6
+  NewCops: enable
+  Exclude:
+    - 'vendor/**/*'
+
+Style:
+  Enabled: false
+Layout:
+  Enabled: false
+Metrics:
+  Enabled: false
+Naming:
+  Enabled: false

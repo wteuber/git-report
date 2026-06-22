@@ -79,33 +79,35 @@ If you prefer manual installation:
 
 ### Dependencies
 
-The tool will automatically install required gems on first run. If you prefer to install them manually:
+The tool's only runtime dependency is the `pmap` gem; everything else it needs
+is in the Ruby standard library. It installs `pmap` automatically into a
+project-local `vendor/` directory on first run (no Bundler, no global install).
+If you prefer to install it manually:
 
 ```bash
-cd /path/to/git_report
-bundle install
-```
-
-Or without bundler:
-```bash
-gem install pmap activesupport bigdecimal
+gem install pmap
 ```
 
 ## How It Works
 
 1. **Git Analysis**: Uses `git log` and `git shortlog` to gather commit data
 2. **Parallel Processing**: Utilizes the `pmap` gem for efficient processing of large repositories
-3. **Smart Dependency Management**: Automatically handles Ruby version differences and gem installation
+3. **Isolated Dependency Management**: Installs its single gem into a project-local `vendor/` directory with an isolated `GEM_HOME`/`GEM_PATH`, so it never clashes with the gems of whatever Ruby is on your `PATH`
 4. **Author Deduplication**: Intelligently merges statistics for authors with multiple email addresses
 
 ## Compatibility
 
 git_report is designed to work across different Ruby versions and environments:
 
-- ✅ Ruby 2.6 - 3.4+
+- ✅ Ruby 2.6 (the support floor) through 3.4+, verified in CI on both
+- ✅ Runs on the stock macOS system Ruby — no Ruby install required for end users
 - ✅ Works with system Ruby or version managers (rbenv, rvm, chruby)
-- ✅ Handles bundler version conflicts automatically
-- ✅ Installs gems locally when needed to avoid permission issues
+- ✅ Installs its gem locally in an isolated `vendor/` dir to avoid permission and version conflicts
+
+The Ruby version floor is enforced by RuboCop (`TargetRubyVersion: 2.6`) and a CI
+matrix that runs against both 2.6 and a recent Ruby. The `.ruby-version` file
+(`3.4.9`) only selects a comfortable Ruby for local development — it does not
+narrow the supported range.
 
 ## Troubleshooting
 
@@ -115,14 +117,17 @@ If you encounter permission errors when installing gems, the tool will automatic
 
 ### Ruby Version Issues
 
-The tool includes a `.ruby-version` file specifying Ruby 2.6.10, but it works with any Ruby version 2.6 or higher. If you have issues with bundler compatibility (especially with Ruby 3.4+), the tool will automatically fall back to direct gem installation.
+The `.ruby-version` file selects Ruby 3.4.9 for local development, but the tool
+supports any Ruby from 2.6 up. It does not use Bundler at runtime, so Bundler
+version conflicts cannot affect it.
 
 ### Missing Dependencies
 
-If you see errors about missing gems, run from the git_report directory:
+If you see errors about missing gems, remove the local gem cache and let the tool
+reinstall on the next run:
 ```bash
 cd /path/to/git_report
-bundle install --path vendor/bundle
+rm -rf vendor
 ```
 
 ## Development
@@ -140,14 +145,26 @@ git_report/
 │   └── git/
 │       ├── author.rb # Author statistics class
 │       └── report.rb # Report generation class
-├── Gemfile          # Ruby dependencies
-├── .ruby-version    # Ruby version specification
+├── test/
+│   └── smoke_test.rb # End-to-end smoke test
+├── .github/workflows/
+│   └── ci.yml        # CI: smoke test (Ruby 2.6 + 3.4) and RuboCop
+├── .rubocop.yml     # Lint config; enforces the Ruby 2.6 syntax floor
+├── Gemfile          # Ruby dependencies (just pmap)
+├── .ruby-version    # Ruby for local development (does not narrow support)
 └── README.md        # This file
 ```
 
 ### Running Tests
 
-Currently, this project doesn't include tests. Contributions to add a test suite are welcome!
+An end-to-end smoke test drives the real executable against a throwaway git
+repository. It uses only minitest (a Ruby default gem), so it needs no setup:
+
+```bash
+ruby test/smoke_test.rb
+```
+
+CI runs this on both Ruby 2.6 and 3.4, plus RuboCop for 2.6 compatibility.
 
 ### Contributing
 
