@@ -5,7 +5,7 @@ source 'https://rubygems.org'
 # 2.6, or the no-install-needed story on macOS breaks.
 ruby '>= 2.6.0'
 
-# git_report's only runtime dependency. Everything else it needs is in the
-# Ruby standard library, so the tool runs on the stock macOS system Ruby
-# without the user installing Ruby or any other gems.
-gem 'pmap'
+# git_report has no runtime dependencies: everything it needs is in the Ruby
+# standard library, so the tool runs on the stock macOS system Ruby without the
+# user installing Ruby or any gems. Parallelism uses plain threads (see
+# lib/git/parallel.rb). Keep this Gemfile dependency-free.

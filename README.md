@@ -11,7 +11,7 @@
      \___/'                       (_)
 ```
 
-> A single command — `git report` — that tells you who wrote the code in any Git repository.
+R> A single command — `git report` — that tells you who wrote the code in any Git repository.
 
 [![CI](https://github.com/wteuber/git_report/actions/workflows/ci.yml/badge.svg)](https://github.com/wteuber/git_report/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -73,8 +73,8 @@ cd /path/to/any/repo
 git report             # print the contributor table
 ```
 
-The first run installs the one dependency (`pmap`) into a project-local
-`vendor/` directory; every run after that is instant.
+There is nothing to install — `git_report` has no gem dependencies and runs
+straight off the stock system Ruby.
 
 ## Understanding the Output
 
@@ -103,9 +103,9 @@ ignored, so the report reflects committed history only.
 - 📊 Per-author commit, line, and file statistics in one table
 - 🧬 Distinguishes surviving code (`LOC`) from lifetime additions/deletions (`+LOC`/`-LOC`)
 - 🔀 Merges contributors who used multiple email addresses
-- 🚀 Parallel processing (via `pmap`) for fast analysis of large repositories
+- 🚀 Parallel processing (plain Ruby threads) for fast analysis of large repositories
 - 🌐 Global `git report` command that works in any repository
-- 🧰 Zero global footprint — installs its one gem into an isolated local `vendor/`
+- 🧰 Zero dependencies — pure Ruby standard library, nothing to install
 - 💎 Runs on Ruby 2.6 through 3.4+, including the stock macOS system Ruby
 
 ## Requirements
@@ -137,28 +137,24 @@ git config --global alias.report "!sh -c \"/path/to/git_report/bin/git_report\""
 
 ### Dependencies
 
-The only runtime dependency is the [`pmap`](https://rubygems.org/gems/pmap) gem;
-everything else comes from the Ruby standard library. On first run `git_report`
-installs `pmap` into a project-local `vendor/` directory with an isolated
-`GEM_HOME`/`GEM_PATH` — no Bundler, no global install, no version conflicts. To
-install it manually instead:
-
-```bash
-gem install pmap
-```
+None. `git_report` uses only the Ruby standard library — parallelism is built on
+plain `Thread` (see [`lib/git/parallel.rb`](lib/git/parallel.rb)) — so there is
+no gem to install, no Bundler, and no version conflicts. It runs directly on
+whatever Ruby is on your `PATH`, including the stock macOS system Ruby.
 
 ## How It Works
 
 1. **Git analysis** — gathers contributor data with `git shortlog` (commits),
    `git blame -w` (surviving lines and files), and `git log --numstat` (lifetime
    additions/deletions).
-2. **Parallel processing** — uses `pmap` to fan blame and log work out across
-   files and authors, keeping large repositories fast.
+2. **Parallel processing** — uses plain Ruby threads to fan blame and log work
+   out across files and authors, keeping large repositories fast. The git
+   subprocesses are I/O-bound and release the GVL, so threads give real
+   concurrency without any gem.
 3. **Author deduplication** — merges authors who committed under the same name
    with different email addresses into a single row.
-4. **Isolated dependencies** — installs its one gem into a project-local
-   `vendor/` directory under an isolated `GEM_HOME`/`GEM_PATH`, so it never
-   clashes with the gems of whatever Ruby is on your `PATH`.
+4. **No dependencies** — relies only on the Ruby standard library, so it runs on
+   whatever Ruby is on your `PATH` with nothing to install.
 
 ## Compatibility
 
@@ -167,7 +163,7 @@ gem install pmap
 - ✅ Ruby **2.6 (support floor) through 3.4+**, both verified in CI
 - ✅ Runs on the stock macOS system Ruby — end users need no Ruby install
 - ✅ Works with system Ruby or version managers (rbenv, rvm, chruby)
-- ✅ Installs its gem locally to avoid permission and version conflicts
+- ✅ No gems to install, so no permission or version conflicts
 
 The Ruby version floor is enforced by RuboCop (`TargetRubyVersion: 2.6`) and a CI
 matrix that runs against both 2.6 and a recent Ruby. The `.ruby-version` file
@@ -176,21 +172,12 @@ narrow the supported range.
 
 ## Troubleshooting
 
-**Permission errors installing gems** — none expected: `git_report` installs into
-a local `vendor/` directory rather than a system location. If you still hit
-trouble, ensure the project directory is writable.
+**Permission errors installing gems** — not applicable: `git_report` installs no
+gems. It runs entirely on the Ruby standard library.
 
 **Ruby version issues** — the `.ruby-version` file selects Ruby 3.4.9 for local
 development, but the tool supports any Ruby from 2.6 up and does not use Bundler
 at runtime, so Bundler version conflicts cannot affect it.
-
-**Missing or broken dependencies** — clear the local gem cache and let the tool
-reinstall on the next run:
-
-```bash
-cd /path/to/git_report
-rm -rf vendor
-```
 
 **"Not a git repository"** — run `git report` from inside a Git working tree;
 the tool reports on the repository in the current directory.
@@ -208,14 +195,15 @@ git_report/
 ├── lib/
 │   ├── git_report.rb # Entry point (loads the Git:: classes)
 │   └── git/
-│       ├── author.rb # Author statistics class
-│       └── report.rb # Report generation class
+│       ├── author.rb   # Author statistics class
+│       ├── parallel.rb # Thread-based parallel map/each helpers
+│       └── report.rb   # Report generation class
 ├── test/
 │   └── smoke_test.rb # End-to-end smoke test
 ├── .github/workflows/
 │   └── ci.yml        # CI: smoke test (Ruby 2.6 + 3.4) and RuboCop
 ├── .rubocop.yml      # Lint config; enforces the Ruby 2.6 syntax floor
-├── Gemfile           # Ruby dependencies (just pmap)
+├── Gemfile           # Declares the Ruby floor (no gem dependencies)
 ├── .ruby-version     # Ruby for local development (does not narrow support)
 └── README.md         # This file
 ```

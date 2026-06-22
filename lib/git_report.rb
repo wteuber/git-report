@@ -1,4 +1,3 @@
-require 'pmap'
 require 'set'
 
 # Git module - contains classes for analyzing git repository statistics
