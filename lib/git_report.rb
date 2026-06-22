@@ -1,6 +1,5 @@
 require 'pmap'
 require 'set'
-require 'active_support/core_ext/string/multibyte'
 
 # Git module - contains classes for analyzing git repository statistics
 module Git

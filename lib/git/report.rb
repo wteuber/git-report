@@ -32,13 +32,16 @@ module Git
 
 
     def parse_shortlog
-      # First pass: get all authors (including those with only merges)
-      `git shortlog -se`.split(/\n/).map do |shortlog_line|
+      # First pass: get all authors (including those with only merges).
+      # HEAD is required: without an explicit revision and with a non-tty
+      # stdin (as when run via the `git report` alias) git shortlog reads the
+      # commit list from stdin and would otherwise return nothing.
+      `git shortlog -se HEAD`.split(/\n/).map do |shortlog_line|
         add shortlog_line, commits: 0
       end
 
       # Second pass: get actual commit counts (excluding merges)
-      `git shortlog -se --no-merges`.split(/\n/).map do |shortlog_line|
+      `git shortlog -se --no-merges HEAD`.split(/\n/).map do |shortlog_line|
         add shortlog_line
       end
 
@@ -68,8 +71,11 @@ module Git
           end
         end
       end
-      names_loc_count.each { |name, loc| find_author(name).loc = loc }
-      names_files.each { |name, files| find_author(name).files = files.size }
+      # find_author can be nil for lines git attributes to someone outside the
+      # shortlog history (e.g. "Not Committed Yet" for staged-but-uncommitted
+      # changes), so skip those rather than crash.
+      names_loc_count.each { |name, loc| find_author(name)&.loc = loc }
+      names_files.each { |name, files| find_author(name)&.files = files.size }
     end
 
     def add(line, opts = {})
@@ -136,7 +142,7 @@ module Git
         next if [author.loc, author.commits, author.files, author.loc_added,
                  author.loc_deleted].all?(&:zero?)
                  
-        line =  "| #{author.name.mb_chars.unicode_normalize.ljust(name_length)} "
+        line =  "| #{author.name.unicode_normalize.ljust(name_length)} "
         line += "| #{author.loc.to_s.rjust(loc_length)} "
         line += "| #{author.commits.to_s.rjust(commits_length)} "
         line += "| #{author.files.to_s.rjust(files_length)} "
