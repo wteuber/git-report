@@ -2,39 +2,11 @@
 # encoding: utf-8
 
 # git_report runs on whatever Ruby is on PATH -- including the stock macOS
-# system Ruby -- so users don't have to install Ruby. Its single runtime
-# dependency (pmap) is installed into a project-local, isolated vendor
-# directory rather than relying on Bundler or the user's global gems.
+# system Ruby -- so users don't have to install Ruby. It has no gem
+# dependencies: everything it needs comes from the Ruby standard library, so
+# there is nothing to install and no first-run vendoring step.
 
-require 'fileutils'
-
-script_dir  = File.expand_path(File.dirname(__FILE__))
-project_dir = File.expand_path('..', script_dir)
-
-# Isolate the gem environment from the user's shell. Without this, a GEM_HOME /
-# GEM_PATH inherited from a chruby/rbenv Ruby (e.g. 3.x) leaks into the system
-# Ruby and blows up with "Symbol not found" native-extension errors when it
-# tries to load gems built for a different Ruby ABI.
-gem_home = File.join(project_dir, 'vendor', 'gems', "ruby-#{RUBY_VERSION}")
-FileUtils.mkdir_p(gem_home)
-ENV['GEM_HOME'] = gem_home
-ENV['GEM_PATH'] = gem_home
-ENV.delete('RUBYOPT')
-ENV.delete('BUNDLE_GEMFILE')
-
-# Install the dependency on first run.
-pmap_installed = Dir.glob(File.join(gem_home, 'gems', 'pmap-*')).any?
-unless pmap_installed
-  puts 'Installing required gems...'
-  unless system('gem', 'install', 'pmap', '--no-document', '--install-dir', gem_home)
-    abort 'Failed to install pmap. Please install it manually: gem install pmap'
-  end
-end
-
-# Pick up the isolated gem path in this already-running process, then make the
-# gem's lib directory loadable.
-Gem.clear_paths
-Dir[File.join(gem_home, 'gems', '*', 'lib')].each { |path| $LOAD_PATH.unshift(path) }
+script_dir = File.expand_path(File.dirname(__FILE__))
 
 require File.join(script_dir, '../lib/git_report.rb')
 

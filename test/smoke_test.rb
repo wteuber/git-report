@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-# End-to-end smoke test. It drives the real bin/git_report launcher -- including
-# its gem-vendoring step -- against a throwaway git repository, so it exercises
-# exactly what an end user runs. minitest ships with Ruby (a default gem), so
+# End-to-end smoke test. It drives the real bin/git_report launcher against a
+# throwaway git repository, so it exercises exactly what an end user runs --
+# including that the tool needs no gems installed. minitest ships with Ruby (a
+# default gem), so
 # this adds no dependency and runs on the 2.6 support floor as well as modern
 # Rubies.
 require 'minitest/autorun'

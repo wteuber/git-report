@@ -37,15 +37,18 @@ module Git
     end
 
     def retrieve_loc_stats
-      emails.pmap do |email|
+      # Run one git log per email in parallel, returning [added, deleted] per
+      # email. The instance-variable accumulation happens afterwards on this
+      # single thread, so the parallel blocks never race on @loc_added/@loc_deleted.
+      Git::Parallel.pmap(emails) do |email|
         # Escape email to prevent command injection
         escaped_email = Shellwords.escape(email)
         numstat = `git log --author=#{escaped_email} \
           --pretty=tformat: --numstat --no-merges`
-        
+
         # Skip if no commits found for this email
         next if numstat.empty?
-        
+
         loc = numstat.split(/\n/).map do |numstat_line|
           parts = numstat_line.scan(/\A(.*)\t(.*)\t/)[0]
           parts ? parts.map(&:to_i) : nil
@@ -53,10 +56,11 @@ module Git
 
         # Skip if no valid data
         next if loc.empty?
-        
-        added, deleted = loc.transpose.map do |add_del_loc|
-          add_del_loc.inject(&:+)
-        end
+
+        loc.transpose.map { |add_del_loc| add_del_loc.inject(&:+) }
+      end.each do |added_deleted|
+        next unless added_deleted
+        added, deleted = added_deleted
         @loc_added += added if added
         @loc_deleted += deleted if deleted
       end
