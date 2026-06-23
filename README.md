@@ -272,4 +272,3 @@ cd /path/to/git-author-report
 ## License
 
 Released under the [MIT License](LICENSE).
-</content>
