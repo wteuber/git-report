@@ -3,7 +3,7 @@ module Git
   # former `pmap` gem. The work these drive is I/O-bound -- every block shells
   # out to git -- so threads give real concurrency even under MRI's GVL: a
   # subprocess spawned by backticks runs outside the lock while other threads
-  # proceed. Keeping this in-tree is what lets git_report run on stock Ruby
+  # proceed. Keeping this in-tree is what lets git-report run on stock Ruby
   # with no gems to install.
   module Parallel
     # Upper bound on worker threads, and therefore on how many git subprocesses

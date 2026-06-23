@@ -5,7 +5,15 @@ source 'https://rubygems.org'
 # 2.6, or the no-install-needed story on macOS breaks.
 ruby '>= 2.6.0'
 
-# git_report has no runtime dependencies: everything it needs is in the Ruby
+# git-report has no RUNTIME dependencies: everything it needs is in the Ruby
 # standard library, so the tool runs on the stock macOS system Ruby without the
 # user installing Ruby or any gems. Parallelism uses plain threads (see
-# lib/git/parallel.rb). Keep this Gemfile dependency-free.
+# lib/git/parallel.rb). Keep the runtime dependency-free -- nothing below is
+# loaded by the tool itself; these are development/CI tools only.
+gemspec
+
+group :development, :test do
+  gem 'minitest' # ships with Ruby; declared so `bundle exec rake test` resolves it
+  gem 'rake'
+  gem 'rubocop', require: false
+end

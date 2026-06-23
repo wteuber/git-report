@@ -1,2 +1,18 @@
 vendor/
-.bundle/ 
+.bundle/
+Gemfile.lock
+
+# Gem build artifacts
+*.gem
+
+# C-extension build artifacts (from the install-time alias hook)
+mkmf.log
+*.o
+*.so
+*.bundle
+
+# Test coverage
+coverage/
+
+# Editor / OS files
+.DS_Store

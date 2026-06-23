@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+git config --global --unset alias.report
+echo '###################################'
+echo '# "git report" has been removed   #'
+echo '###################################'
