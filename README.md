@@ -1,4 +1,4 @@
-# git-report
+# git report
 
 ```
                _                                       _
@@ -13,12 +13,12 @@
 
 R> A single command — `git report` — that tells you who wrote the code in any Git repository.
 
-[![CI](https://github.com/wteuber/git-report/actions/workflows/ci.yml/badge.svg)](https://github.com/wteuber/git-report/actions/workflows/ci.yml)
-[![Gem Version](https://img.shields.io/gem/v/git-report.svg)](https://rubygems.org/gems/git-report)
+[![CI](https://github.com/wteuber/git-author-report/actions/workflows/ci.yml/badge.svg)](https://github.com/wteuber/git-author-report/actions/workflows/ci.yml)
+[![Gem Version](https://img.shields.io/gem/v/git-author-report.svg)](https://rubygems.org/gems/git-author-report)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Ruby](https://img.shields.io/badge/Ruby-2.6%20–%204.0%2B-CC342D.svg)](.ruby-version)
 
-`git-report` analyzes a repository and prints a per-author breakdown of how much
+`git-author-report` analyzes a repository and prints a per-author breakdown of how much
 code each contributor wrote — surviving lines, lifetime additions and deletions,
 commit counts, and files touched — as a clean ASCII table. It runs on whatever
 Ruby is already on your machine (including the stock macOS system Ruby), needs no
@@ -36,7 +36,7 @@ gems.
 
 ## Table of Contents
 
-- [Why git-report?](#why-git-report)
+- [Why git-author-report?](#why-git-author-report)
 - [Quick Start](#quick-start)
 - [Understanding the Output](#understanding-the-output)
 - [Features](#features)
@@ -49,10 +49,10 @@ gems.
 - [Uninstallation](#uninstallation)
 - [License](#license)
 
-## Why git-report?
+## Why git-author-report?
 
 `git shortlog` tells you who committed and how often, but commit counts are a
-poor proxy for contribution. `git-report` answers the questions that actually
+poor proxy for contribution. `git-author-report` answers the questions that actually
 matter:
 
 - **Who owns the code that exists today?** The `LOC` column counts the lines each
@@ -66,13 +66,13 @@ matter:
 ## Quick Start
 
 ```bash
-gem install git-report   # also registers a global `git report` alias
+gem install git-author-report   # also registers a global `git report` alias
 
 cd /path/to/any/repo
-git report               # print the contributor table
+git report                      # print the contributor table
 ```
 
-There is nothing else to install — `git-report` has no runtime gem dependencies
+There is nothing else to install — `git-author-report` has no runtime gem dependencies
 and runs straight off the stock system Ruby.
 
 ## Understanding the Output
@@ -118,7 +118,7 @@ ignored, so the report reflects committed history only.
 ### Install as a gem (recommended)
 
 ```bash
-gem install git-report
+gem install git-author-report
 ```
 
 Installing the gem also registers a global Git alias so you can run `git report`
@@ -129,8 +129,8 @@ directory is on your `PATH`.)
 ### From a clone
 
 ```bash
-git clone https://github.com/wteuber/git-report.git
-cd git-report
+git clone https://github.com/wteuber/git-author-report.git
+cd git-author-report
 ./bin/git_add_alias_report
 ```
 
@@ -141,12 +141,12 @@ This registers the same global `git report` alias without installing the gem.
 If you'd rather wire up the alias yourself:
 
 ```bash
-git config --global alias.report "!exec \"/path/to/git-report/bin/git-report\""
+git config --global alias.report "!exec \"/path/to/git-author-report/bin/git-report\""
 ```
 
 ### Dependencies
 
-None at runtime. `git-report` uses only the Ruby standard library — parallelism
+None at runtime. `git-author-report` uses only the Ruby standard library — parallelism
 is built on plain `Thread` (see [`lib/git/parallel.rb`](lib/git/parallel.rb)) —
 so there is no gem to install, no Bundler, and no version conflicts. It runs
 directly on whatever Ruby is on your `PATH`, including the stock macOS system
@@ -168,7 +168,7 @@ Ruby.
 
 ## Compatibility
 
-`git-report` is designed to run anywhere Git and Ruby already exist:
+`git-author-report` is designed to run anywhere Git and Ruby already exist:
 
 - ✅ Ruby **2.6 (support floor) through 4.0+**, all verified in CI
 - ✅ Runs on the stock macOS system Ruby — end users need no Ruby install
@@ -182,10 +182,10 @@ development — it does **not** narrow the supported range.
 
 ## Troubleshooting
 
-**Permission errors installing gems** — `git-report` has no runtime
-dependencies, so the only gem involved is `git-report` itself. If `gem install`
+**Permission errors installing gems** — `git-author-report` has no runtime
+dependencies, so the only gem involved is `git-author-report` itself. If `gem install`
 needs elevated permissions, install into your user gem dir
-(`gem install --user-install git-report`) or use a version manager.
+(`gem install --user-install git-author-report`) or use a version manager.
 
 **Ruby version issues** — the `.ruby-version` file selects Ruby 4.0.4 for local
 development, but the tool supports any Ruby from 2.6 up and does not use Bundler
@@ -199,7 +199,7 @@ the tool reports on the repository in the current directory.
 ### Project Structure
 
 ```
-git-report/
+git-author-report/
 ├── bin/
 │   ├── git-report              # Main executable
 │   ├── git_add_alias_report    # Registers the `git report` alias
@@ -216,7 +216,7 @@ git-report/
 │       ├── parallel.rb         # Thread-based parallel map/each helpers
 │       └── report.rb           # Report generation class
 ├── test/                       # minitest suite (smoke + unit tests)
-├── git-report.gemspec          # Gem specification
+├── git-author-report.gemspec   # Gem specification
 ├── VERSION                     # Single source of truth for the version
 ├── Rakefile                    # `rake` runs tests + RuboCop
 ├── .github/workflows/
@@ -257,13 +257,13 @@ Contributions are welcome!
 If you installed the gem:
 
 ```bash
-gem uninstall git-report   # also removes the global `git report` alias
+gem uninstall git-author-report   # also removes the global `git report` alias
 ```
 
 If you installed from a clone:
 
 ```bash
-cd /path/to/git-report
+cd /path/to/git-author-report
 ./bin/git_remove_alias_report
 ```
 
@@ -279,7 +279,7 @@ Released under the [MIT License](LICENSE).
 
 ## Links
 
-- **Repository**: https://github.com/wteuber/git-report
-- **Issues**: https://github.com/wteuber/git-report/issues
-- **Pull Requests**: https://github.com/wteuber/git-report/pulls
+- **Repository**: https://github.com/wteuber/git-author-report
+- **Issues**: https://github.com/wteuber/git-author-report/issues
+- **Pull Requests**: https://github.com/wteuber/git-author-report/pulls
 </content>

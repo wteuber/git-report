@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-06-23
 
 ### Added
-- First release as the `git-report` gem, installable via `gem install git-report`.
-- Gem packaging: `git-report.gemspec`, `VERSION`, `lib/version.rb`, and a
+- First release as the `git-author-report` gem, installable via
+  `gem install git-author-report`. The executable is `git-report`, so the tool
+  runs as `git report`.
+- Gem packaging: `git-author-report.gemspec`, `VERSION`, `lib/version.rb`, and a
   `Rakefile` running the test suite and RuboCop.
 - `gem install` sets up the `git report` alias (via `bin/git_add_alias_report`),
   and `gem uninstall` removes it (via a `rubygems_plugin.rb` `pre_uninstall` hook
@@ -19,11 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `git-report --version` / `-v` prints the version.
 
 ### Changed
-- **BREAKING**: Renamed the project from `git_report` to `git-report` (gem,
-  executable, repository, and documentation). The Ruby source file
-  `lib/git_report.rb` keeps its underscore per Ruby file-naming convention.
+- **BREAKING**: Renamed the project from `git_report` to `git-author-report`
+  (gem, repository, and documentation). The executable stays `git-report` so the
+  tool is invoked as `git report`. The Ruby source file `lib/git_report.rb`
+  keeps its underscore per Ruby file-naming convention.
 - `bin/install` / `bin/uninstall` renamed to `bin/git_add_alias_report` /
   `bin/git_remove_alias_report`.
 
-[Unreleased]: https://github.com/wteuber/git-report/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/wteuber/git-report/releases/tag/v1.0.0
+[Unreleased]: https://github.com/wteuber/git-author-report/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/wteuber/git-author-report/releases/tag/v1.0.0
