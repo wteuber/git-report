@@ -1,4 +1,4 @@
-# git_report
+# git-report
 
 ```
                _                                       _
@@ -13,16 +13,17 @@
 
 R> A single command — `git report` — that tells you who wrote the code in any Git repository.
 
-[![CI](https://github.com/wteuber/git_report/actions/workflows/ci.yml/badge.svg)](https://github.com/wteuber/git_report/actions/workflows/ci.yml)
+[![CI](https://github.com/wteuber/git-report/actions/workflows/ci.yml/badge.svg)](https://github.com/wteuber/git-report/actions/workflows/ci.yml)
+[![Gem Version](https://img.shields.io/gem/v/git-report.svg)](https://rubygems.org/gems/git-report)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Ruby](https://img.shields.io/badge/Ruby-2.6%20–%203.4%2B-CC342D.svg)](.ruby-version)
+[![Ruby](https://img.shields.io/badge/Ruby-2.6%20–%204.0%2B-CC342D.svg)](.ruby-version)
 
-`git_report` analyzes a repository and prints a per-author breakdown of how much
+`git-report` analyzes a repository and prints a per-author breakdown of how much
 code each contributor wrote — surviving lines, lifetime additions and deletions,
 commit counts, and files touched — as a clean ASCII table. It runs on whatever
 Ruby is already on your machine (including the stock macOS system Ruby), needs no
-Bundler, and installs its one dependency into an isolated local directory so it
-never touches your global gems.
+Bundler, and has no runtime gem dependencies, so it never touches your global
+gems.
 
 ```
 +-----------------+-----+---------+-------+------+------+
@@ -35,7 +36,7 @@ never touches your global gems.
 
 ## Table of Contents
 
-- [Why git_report?](#why-git_report)
+- [Why git-report?](#why-git-report)
 - [Quick Start](#quick-start)
 - [Understanding the Output](#understanding-the-output)
 - [Features](#features)
@@ -48,10 +49,10 @@ never touches your global gems.
 - [Uninstallation](#uninstallation)
 - [License](#license)
 
-## Why git_report?
+## Why git-report?
 
 `git shortlog` tells you who committed and how often, but commit counts are a
-poor proxy for contribution. `git_report` answers the questions that actually
+poor proxy for contribution. `git-report` answers the questions that actually
 matter:
 
 - **Who owns the code that exists today?** The `LOC` column counts the lines each
@@ -65,16 +66,14 @@ matter:
 ## Quick Start
 
 ```bash
-git clone https://github.com/wteuber/git_report.git
-cd git_report
-./bin/install          # registers a global `git report` alias
+gem install git-report   # also registers a global `git report` alias
 
 cd /path/to/any/repo
-git report             # print the contributor table
+git report               # print the contributor table
 ```
 
-There is nothing to install — `git_report` has no gem dependencies and runs
-straight off the stock system Ruby.
+There is nothing else to install — `git-report` has no runtime gem dependencies
+and runs straight off the stock system Ruby.
 
 ## Understanding the Output
 
@@ -105,8 +104,8 @@ ignored, so the report reflects committed history only.
 - 🔀 Merges contributors who used multiple email addresses
 - 🚀 Parallel processing (plain Ruby threads) for fast analysis of large repositories
 - 🌐 Global `git report` command that works in any repository
-- 🧰 Zero dependencies — pure Ruby standard library, nothing to install
-- 💎 Runs on Ruby 2.6 through 3.4+, including the stock macOS system Ruby
+- 🧰 Zero runtime dependencies — pure Ruby standard library, nothing to install
+- 💎 Runs on Ruby 2.6 through 4.0+, including the stock macOS system Ruby
 
 ## Requirements
 
@@ -116,31 +115,42 @@ ignored, so the report reflects committed history only.
 
 ## Installation
 
-### Quick Install (recommended)
+### Install as a gem (recommended)
 
 ```bash
-git clone https://github.com/wteuber/git_report.git
-cd git_report
-./bin/install
+gem install git-report
 ```
 
-This registers a global Git alias so you can run `git report` from any
-repository on your machine.
+Installing the gem also registers a global Git alias so you can run `git report`
+from any repository on your machine. (Because the executable is named
+`git-report`, Git also resolves `git report` natively once the gem's bin
+directory is on your `PATH`.)
+
+### From a clone
+
+```bash
+git clone https://github.com/wteuber/git-report.git
+cd git-report
+./bin/git_add_alias_report
+```
+
+This registers the same global `git report` alias without installing the gem.
 
 ### Manual Installation
 
 If you'd rather wire up the alias yourself:
 
 ```bash
-git config --global alias.report "!sh -c \"/path/to/git_report/bin/git_report\""
+git config --global alias.report "!exec \"/path/to/git-report/bin/git-report\""
 ```
 
 ### Dependencies
 
-None. `git_report` uses only the Ruby standard library — parallelism is built on
-plain `Thread` (see [`lib/git/parallel.rb`](lib/git/parallel.rb)) — so there is
-no gem to install, no Bundler, and no version conflicts. It runs directly on
-whatever Ruby is on your `PATH`, including the stock macOS system Ruby.
+None at runtime. `git-report` uses only the Ruby standard library — parallelism
+is built on plain `Thread` (see [`lib/git/parallel.rb`](lib/git/parallel.rb)) —
+so there is no gem to install, no Bundler, and no version conflicts. It runs
+directly on whatever Ruby is on your `PATH`, including the stock macOS system
+Ruby.
 
 ## How It Works
 
@@ -153,29 +163,31 @@ whatever Ruby is on your `PATH`, including the stock macOS system Ruby.
    concurrency without any gem.
 3. **Author deduplication** — merges authors who committed under the same name
    with different email addresses into a single row.
-4. **No dependencies** — relies only on the Ruby standard library, so it runs on
-   whatever Ruby is on your `PATH` with nothing to install.
+4. **No runtime dependencies** — relies only on the Ruby standard library, so it
+   runs on whatever Ruby is on your `PATH` with nothing to install.
 
 ## Compatibility
 
-`git_report` is designed to run anywhere Git and Ruby already exist:
+`git-report` is designed to run anywhere Git and Ruby already exist:
 
-- ✅ Ruby **2.6 (support floor) through 3.4+**, both verified in CI
+- ✅ Ruby **2.6 (support floor) through 4.0+**, all verified in CI
 - ✅ Runs on the stock macOS system Ruby — end users need no Ruby install
 - ✅ Works with system Ruby or version managers (rbenv, rvm, chruby)
-- ✅ No gems to install, so no permission or version conflicts
+- ✅ No runtime gems to install, so no permission or version conflicts
 
 The Ruby version floor is enforced by RuboCop (`TargetRubyVersion: 2.6`) and a CI
-matrix that runs against both 2.6 and a recent Ruby. The `.ruby-version` file
-(`3.4.9`) only selects a comfortable Ruby for local development — it does **not**
-narrow the supported range.
+matrix that runs against 2.6, a recent 3.x, and the latest Ruby (4.0). The
+`.ruby-version` file (`4.0.4`) only selects a comfortable Ruby for local
+development — it does **not** narrow the supported range.
 
 ## Troubleshooting
 
-**Permission errors installing gems** — not applicable: `git_report` installs no
-gems. It runs entirely on the Ruby standard library.
+**Permission errors installing gems** — `git-report` has no runtime
+dependencies, so the only gem involved is `git-report` itself. If `gem install`
+needs elevated permissions, install into your user gem dir
+(`gem install --user-install git-report`) or use a version manager.
 
-**Ruby version issues** — the `.ruby-version` file selects Ruby 3.4.9 for local
+**Ruby version issues** — the `.ruby-version` file selects Ruby 4.0.4 for local
 development, but the tool supports any Ruby from 2.6 up and does not use Bundler
 at runtime, so Bundler version conflicts cannot affect it.
 
@@ -187,37 +199,47 @@ the tool reports on the repository in the current directory.
 ### Project Structure
 
 ```
-git_report/
+git-report/
 ├── bin/
-│   ├── git_report    # Main executable
-│   ├── install       # Installation script
-│   └── uninstall     # Uninstallation script
+│   ├── git-report              # Main executable
+│   ├── git_add_alias_report    # Registers the `git report` alias
+│   └── git_remove_alias_report # Removes the `git report` alias
+├── ext/git_report/
+│   ├── extconf.rb              # Install-time hook that adds the alias
+│   └── Makefile                # No-op (keeps RubyGems happy)
 ├── lib/
-│   ├── git_report.rb # Entry point (loads the Git:: classes)
+│   ├── git_report.rb           # Entry point (loads the Git:: classes)
+│   ├── version.rb              # Gem version (reads VERSION)
+│   ├── rubygems_plugin.rb      # Removes the alias on `gem uninstall`
 │   └── git/
-│       ├── author.rb   # Author statistics class
-│       ├── parallel.rb # Thread-based parallel map/each helpers
-│       └── report.rb   # Report generation class
-├── test/
-│   └── smoke_test.rb # End-to-end smoke test
+│       ├── author.rb           # Author statistics class
+│       ├── parallel.rb         # Thread-based parallel map/each helpers
+│       └── report.rb           # Report generation class
+├── test/                       # minitest suite (smoke + unit tests)
+├── git-report.gemspec          # Gem specification
+├── VERSION                     # Single source of truth for the version
+├── Rakefile                    # `rake` runs tests + RuboCop
 ├── .github/workflows/
-│   └── ci.yml        # CI: smoke test (Ruby 2.6 + 3.4) and RuboCop
-├── .rubocop.yml      # Lint config; enforces the Ruby 2.6 syntax floor
-├── Gemfile           # Declares the Ruby floor (no gem dependencies)
-├── .ruby-version     # Ruby for local development (does not narrow support)
-└── README.md         # This file
+│   └── ci.yml                  # CI: tests (Ruby 2.6 + 3.4 + 4.0) and RuboCop
+├── .rubocop.yml                # Lint config; enforces the Ruby 2.6 syntax floor
+├── Gemfile                     # Declares the Ruby floor (dev deps only)
+├── .ruby-version               # Ruby for local development (does not narrow support)
+└── README.md                   # This file
 ```
 
 ### Running Tests
 
-An end-to-end smoke test drives the real executable against a throwaway Git
-repository. It uses only minitest (a Ruby default gem), so it needs no setup:
+The minitest suite drives the real executable against throwaway Git
+repositories. It uses only minitest (a Ruby default gem):
 
 ```bash
-ruby test/smoke_test.rb
+ruby test/smoke_test.rb   # the end-to-end smoke test
+# or run everything plus RuboCop:
+bundle install
+bundle exec rake
 ```
 
-CI runs this on both Ruby 2.6 and 3.4, plus RuboCop for 2.6 compatibility.
+CI runs the suite on Ruby 2.6, 3.4, and 4.0, plus RuboCop for 2.6 compatibility.
 
 ### Contributing
 
@@ -225,20 +247,25 @@ Contributions are welcome!
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your change and keep the smoke test green (`ruby test/smoke_test.rb`)
+3. Make your change and keep the tests green (`bundle exec rake`)
 4. Commit your changes (`git commit -m 'Add some amazing feature'`)
 5. Push to the branch (`git push origin feature/amazing-feature`)
 6. Open a Pull Request
 
 ## Uninstallation
 
+If you installed the gem:
+
 ```bash
-cd /path/to/git_report
-./bin/uninstall
+gem uninstall git-report   # also removes the global `git report` alias
 ```
 
-This removes the global Git alias; you can then delete the `git_report`
-directory.
+If you installed from a clone:
+
+```bash
+cd /path/to/git-report
+./bin/git_remove_alias_report
+```
 
 ## License
 
@@ -252,8 +279,7 @@ Released under the [MIT License](LICENSE).
 
 ## Links
 
-- **Repository**: https://github.com/wteuber/git_report
-- **Issues**: https://github.com/wteuber/git_report/issues
-- **Pull Requests**: https://github.com/wteuber/git_report/pulls
+- **Repository**: https://github.com/wteuber/git-report
+- **Issues**: https://github.com/wteuber/git-report/issues
+- **Pull Requests**: https://github.com/wteuber/git-report/pulls
 </content>
-</invoke>

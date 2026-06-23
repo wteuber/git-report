@@ -1,17 +1,13 @@
 # frozen_string_literal: true
 
-# End-to-end smoke test. It drives the real bin/git_report launcher against a
-# throwaway git repository, so it exercises exactly what an end user runs --
-# including that the tool needs no gems installed. minitest ships with Ruby (a
-# default gem), so
-# this adds no dependency and runs on the 2.6 support floor as well as modern
-# Rubies.
-require 'minitest/autorun'
-require 'open3'
-require 'tmpdir'
+require_relative 'test_helper'
 
+# End-to-end smoke tests. They drive the real bin/git-report launcher against
+# throwaway repositories, exercising exactly what an end user runs -- including
+# that the tool needs no gems installed. minitest ships with Ruby and the tool
+# has no dependencies, so this also runs on the 2.6 support floor.
 class SmokeTest < Minitest::Test
-  BIN = File.expand_path('../bin/git_report', __dir__)
+  include GitFixture
 
   def test_reports_authors_for_a_repo
     Dir.mktmpdir do |dir|
@@ -21,9 +17,8 @@ class SmokeTest < Minitest::Test
       commit(dir, 'b.txt', "only line\n",
              name: 'Alan Turing', email: 'alan@example.com')
 
-      out, status = Open3.capture2(BIN, chdir: dir)
+      out = run_report(dir)
 
-      assert status.success?, "git_report exited non-zero:\n#{out}"
       assert_match(/\bName\b/, out)
       assert_match(/\bLOC\b/, out)
       assert_includes out, 'Ada Lovelace'
@@ -40,17 +35,29 @@ class SmokeTest < Minitest::Test
     end
   end
 
-  private
+  # The LOC column must match git's own blame attribution. This used to be a
+  # manual check run via git-lines-per-author.sh: that script counted current
+  # lines per author straight from `git blame`, and we eyeballed it against the
+  # report. Here we run the same blame pipeline as the source of truth and
+  # assert git-report's LOC column reproduces it exactly, including a file
+  # edited by more than one author.
+  def test_loc_column_matches_git_blame_line_counts
+    Dir.mktmpdir do |dir|
+      git(dir, 'init', '-q')
+      commit(dir, 'a.txt', "line one\nline two\nline three\n",
+             name: 'Ada Lovelace', email: 'ada@example.com')
+      commit(dir, 'b.txt', "alan line\n",
+             name: 'Alan Turing', email: 'alan@example.com')
+      # Ada appends to Alan's file, so b.txt is attributed to both authors.
+      commit(dir, 'b.txt', "alan line\nada one\nada two\n",
+             name: 'Ada Lovelace', email: 'ada@example.com')
 
-  def git(dir, *args)
-    out, status = Open3.capture2e('git', '-C', dir, *args)
-    raise "git #{args.join(' ')} failed:\n#{out}" unless status.success?
-  end
+      out = run_report(dir)
 
-  def commit(dir, file, content, name:, email:)
-    File.write(File.join(dir, file), content)
-    git(dir, 'add', file)
-    git(dir, '-c', "user.name=#{name}", '-c', "user.email=#{email}",
-        'commit', '-q', '-m', "add #{file}")
+      expected = blame_line_counts(dir)
+      assert_equal({ 'Ada Lovelace' => 5, 'Alan Turing' => 1 }, expected,
+                   'blame pipeline produced an unexpected baseline')
+      assert_equal expected, loc_by_author(out)
+    end
   end
 end

@@ -1,12 +1,19 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-# git_report runs on whatever Ruby is on PATH -- including the stock macOS
+# git-report runs on whatever Ruby is on PATH -- including the stock macOS
 # system Ruby -- so users don't have to install Ruby. It has no gem
 # dependencies: everything it needs comes from the Ruby standard library, so
 # there is nothing to install and no first-run vendoring step.
 
 script_dir = File.expand_path(File.dirname(__FILE__))
+
+require File.join(script_dir, '../lib/version.rb')
+
+if ['-v', '--version'].include?(ARGV[0])
+  puts "git-report #{Git::Report::VERSION}"
+  exit 0
+end
 
 require File.join(script_dir, '../lib/git_report.rb')
 

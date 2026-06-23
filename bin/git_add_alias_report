@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+pushd `dirname $0` > /dev/null
+BIN_DIR=`pwd`
+popd > /dev/null
+
+git config --global alias.report "!exec \"$BIN_DIR/git-report\""
+echo '#################################'
+echo '# "git report" has been added   #'
+echo '# Run: git report               #'
+echo '#################################'

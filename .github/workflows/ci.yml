@@ -5,22 +5,24 @@ on:
   pull_request:
 
 jobs:
-  smoke:
-    name: Smoke test (Ruby ${{ matrix.ruby }})
+  test:
+    name: Tests (Ruby ${{ matrix.ruby }})
     # ubuntu-22.04 still provides a prebuilt Ruby 2.6 (the support floor);
     # newer runner images do not.
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        ruby: ['2.6', '3.4']
+        ruby: ['2.6', '3.4', '4.0']
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-      - name: Run smoke test
-        run: ruby test/smoke_test.rb
+      # Runs the whole suite (test/*_test.rb) and fails if library line
+      # coverage drops below the threshold. Uses only stdlib, so no install.
+      - name: Run tests with coverage
+        run: ruby test/coverage.rb
 
   lint:
     name: RuboCop (2.6 compatibility)
@@ -29,7 +31,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4'
+          ruby-version: '4.0'
       - name: Install RuboCop
         run: gem install rubocop --no-document
       - name: Lint
