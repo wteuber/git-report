@@ -1,4 +1,4 @@
-# git report
+# git-author-report
 
 ```
                _                                       _
@@ -11,12 +11,12 @@
      \___/'                       (_)
 ```
 
-R> A single command — `git report` — that tells you who wrote the code in any Git repository.
+> A single command — `git report` — that tells you who wrote the code in any Git repository.
 
 [![CI](https://github.com/wteuber/git-author-report/actions/workflows/ci.yml/badge.svg)](https://github.com/wteuber/git-author-report/actions/workflows/ci.yml)
 [![Gem Version](https://img.shields.io/gem/v/git-author-report.svg)](https://rubygems.org/gems/git-author-report)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Ruby](https://img.shields.io/badge/Ruby-2.6%20–%204.0%2B-CC342D.svg)](.ruby-version)
+[![Ruby](https://img.shields.io/badge/Ruby-2.6%20--%204.0%2B-CC342D.svg)](.ruby-version)
 
 `git-author-report` analyzes a repository and prints a per-author breakdown of how much
 code each contributor wrote — surviving lines, lifetime additions and deletions,
@@ -70,9 +70,11 @@ gem install git-author-report   # also registers a global `git report` alias
 
 cd /path/to/any/repo
 git report                      # print the contributor table
+git report --version            # print the version and exit
 ```
 
-There is nothing else to install — `git-author-report` has no runtime gem dependencies
+`git report` takes no other arguments — it always reports on the repository in
+the current directory. There is nothing else to install — `git-author-report` has no runtime gem dependencies
 and runs straight off the stock system Ruby.
 
 ## Understanding the Output
@@ -270,16 +272,4 @@ cd /path/to/git-author-report
 ## License
 
 Released under the [MIT License](LICENSE).
-
-## Acknowledgments
-
-- Original ASCII art logo design
-- Built with Ruby and the power of Git
-- Thanks to all contributors
-
-## Links
-
-- **Repository**: https://github.com/wteuber/git-author-report
-- **Issues**: https://github.com/wteuber/git-author-report/issues
-- **Pull Requests**: https://github.com/wteuber/git-author-report/pulls
 </content>
