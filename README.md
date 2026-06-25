@@ -11,7 +11,7 @@
      \___/'                       (_)
 ```
 
-> A single command — `git report` — that tells you who wrote the code in any Git repository.
+> One command, `git report`, tells you who wrote the code in any Git repository.
 
 [![CI](https://github.com/wteuber/git-author-report/actions/workflows/ci.yml/badge.svg)](https://github.com/wteuber/git-author-report/actions/workflows/ci.yml)
 [![Gem Version](https://img.shields.io/gem/v/git-author-report.svg)](https://rubygems.org/gems/git-author-report)
@@ -19,8 +19,8 @@
 [![Ruby](https://img.shields.io/badge/Ruby-2.6%20--%204.0%2B-CC342D.svg)](.ruby-version)
 
 `git-author-report` analyzes a repository and prints a per-author breakdown of how much
-code each contributor wrote — surviving lines, lifetime additions and deletions,
-commit counts, and files touched — as a clean ASCII table. It runs on whatever
+code each contributor wrote: surviving lines, lifetime additions and deletions,
+commit counts, and files touched, all in a clean ASCII table. It runs on whatever
 Ruby is already on your machine (including the stock macOS system Ruby), needs no
 Bundler, and has no runtime gem dependencies, so it never touches your global
 gems.
@@ -60,8 +60,8 @@ matter:
   what they once added.
 - **Who has done the most work over time?** The `+LOC` / `-LOC` columns sum every
   line added and removed across the project's history.
-- **How is effort spread across the team?** Commits and files-touched round out
-  the picture — in one table, with zero configuration.
+- **How is effort spread across the team?** Commits and files-touched fill in the
+  rest, all in one table with zero configuration.
 
 ## Quick Start
 
@@ -73,9 +73,9 @@ git report                      # print the contributor table
 git report --version            # print the version and exit
 ```
 
-`git report` takes no other arguments — it always reports on the repository in
-the current directory. There is nothing else to install — `git-author-report` has no runtime gem dependencies
-and runs straight off the stock system Ruby.
+`git report` takes no other arguments; it always reports on the repository in
+the current directory. Nothing else needs installing, since `git-author-report` has no
+runtime gem dependencies and runs straight off the stock system Ruby.
 
 ## Understanding the Output
 
@@ -106,7 +106,7 @@ ignored, so the report reflects committed history only.
 - 🔀 Merges contributors who used multiple email addresses
 - 🚀 Parallel processing (plain Ruby threads) for fast analysis of large repositories
 - 🌐 Global `git report` command that works in any repository
-- 🧰 Zero runtime dependencies — pure Ruby standard library, nothing to install
+- 🧰 Zero runtime dependencies: pure Ruby standard library, nothing to install
 - 💎 Runs on Ruby 2.6 through 4.0+, including the stock macOS system Ruby
 
 ## Requirements
@@ -148,24 +148,24 @@ git config --global alias.report "!exec \"/path/to/git-author-report/bin/git-rep
 
 ### Dependencies
 
-None at runtime. `git-author-report` uses only the Ruby standard library — parallelism
-is built on plain `Thread` (see [`lib/git/parallel.rb`](lib/git/parallel.rb)) —
+None at runtime. `git-author-report` uses only the Ruby standard library, with
+parallelism built on plain `Thread` (see [`lib/git/parallel.rb`](lib/git/parallel.rb)),
 so there is no gem to install, no Bundler, and no version conflicts. It runs
 directly on whatever Ruby is on your `PATH`, including the stock macOS system
 Ruby.
 
 ## How It Works
 
-1. **Git analysis** — gathers contributor data with `git shortlog` (commits),
+1. **Git analysis.** Gathers contributor data with `git shortlog` (commits),
    `git blame -w` (surviving lines and files), and `git log --numstat` (lifetime
    additions/deletions).
-2. **Parallel processing** — uses plain Ruby threads to fan blame and log work
+2. **Parallel processing.** Uses plain Ruby threads to fan blame and log work
    out across files and authors, keeping large repositories fast. The git
    subprocesses are I/O-bound and release the GVL, so threads give real
    concurrency without any gem.
-3. **Author deduplication** — merges authors who committed under the same name
+3. **Author deduplication.** Merges authors who committed under the same name
    with different email addresses into a single row.
-4. **No runtime dependencies** — relies only on the Ruby standard library, so it
+4. **No runtime dependencies.** Relies only on the Ruby standard library, so it
    runs on whatever Ruby is on your `PATH` with nothing to install.
 
 ## Compatibility
@@ -173,27 +173,27 @@ Ruby.
 `git-author-report` is designed to run anywhere Git and Ruby already exist:
 
 - ✅ Ruby **2.6 (support floor) through 4.0+**, all verified in CI
-- ✅ Runs on the stock macOS system Ruby — end users need no Ruby install
+- ✅ Runs on the stock macOS system Ruby, so end users need no Ruby install
 - ✅ Works with system Ruby or version managers (rbenv, rvm, chruby)
 - ✅ No runtime gems to install, so no permission or version conflicts
 
 The Ruby version floor is enforced by RuboCop (`TargetRubyVersion: 2.6`) and a CI
 matrix that runs against 2.6, a recent 3.x, and the latest Ruby (4.0). The
 `.ruby-version` file (`4.0.4`) only selects a comfortable Ruby for local
-development — it does **not** narrow the supported range.
+development; it does **not** narrow the supported range.
 
 ## Troubleshooting
 
-**Permission errors installing gems** — `git-author-report` has no runtime
+**Permission errors installing gems.** `git-author-report` has no runtime
 dependencies, so the only gem involved is `git-author-report` itself. If `gem install`
 needs elevated permissions, install into your user gem dir
 (`gem install --user-install git-author-report`) or use a version manager.
 
-**Ruby version issues** — the `.ruby-version` file selects Ruby 4.0.4 for local
+**Ruby version issues.** The `.ruby-version` file selects Ruby 4.0.4 for local
 development, but the tool supports any Ruby from 2.6 up and does not use Bundler
 at runtime, so Bundler version conflicts cannot affect it.
 
-**"Not a git repository"** — run `git report` from inside a Git working tree;
+**"Not a git repository".** Run `git report` from inside a Git working tree;
 the tool reports on the repository in the current directory.
 
 ## Development
